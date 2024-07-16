@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Interactive Web Mapping</title>
+    <title>WA COVID19 Vaccinated Population</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
@@ -46,9 +46,9 @@
 
         #features {
             top: 0;
-            height: 100px;
+            height: 150px;
             margin-top: 20px;
-            width: 250px;
+            width: 270px;
         }
 
         #legend {
@@ -73,70 +73,92 @@
             cursor: unset;
         }
     </style>
-</head>
+</head> 
 
 <body>
     <div id="map"></div>
     <div class='map-overlay' id='features'>
-        <h2>US Population Density</h2>
+        <h2>WA COVID19 Vaccinated Population</h2>
         <div id='text-description'>
-            <p>Hover over a state!</p>
+            <p>Hover over a County</p>
         </div>
     </div>
     <div class='map-overlay' id='legend'></div>
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoiamFrb2J6aGFvIiwiYSI6ImNpcms2YWsyMzAwMmtmbG5icTFxZ3ZkdncifQ.P9MBej1xacybKcDN_jehvw';
+        mapboxgl.accessToken = 'pk.eyJ1IjoiamltbXluYW0iLCJhIjoiY2x5bnNwY3ZkMGE0eTJpcHN3dzNqajZmNiJ9.eYC0_HSmLZL78-h-exF1aA';
 
         const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/light-v10',
-            zoom: 3,
-            center: [-100, 40]
-        });
+                container: 'map', // container ID
+                style: 'mapbox://styles/mapbox/light-v10', // style URL
+                zoom: 6.8, // starting zoom
+                center: [-121, 47.3] // starting center
+            }
+        );
 
-        async function geojsonFetch() {
-            let response = await fetch('assets/stateData.geojson');
-            let stateData = await response.json();
-
+        async function geojsonFetch() { 
+            let response = await fetch('assets/wa-covid-data-102521.geojson');
+            let countyData = await response.json();
+        
             map.on('load', function loadingData() {
-                map.addSource('stateData', {
+                
+                map.addSource('countyData', {
                     type: 'geojson',
-                    data: stateData
+                    data: countyData
                 });
 
                 map.addLayer({
-                    'id': 'stateData-layer',
+                    'id': 'countyData-layer',
                     'type': 'fill',
-                    'source': 'stateData',
+                    'source': 'countyData',
                     'paint': {
                         'fill-color': [
-                            'step',                  // Use step expression to provide fill color based on values
-                            ['get', 'density'],      // Get the density attribute from the data
-                            '#FFEDA0', 10,           // Use color #FFEDA0 if density < 10
-                            '#FED976', 20,           // Use color #FED976 if 10 <= density < 20
-                            '#FEB24C', 50,           // Use color #FEB24C if 20 <= density < 50
-                            '#FD8D3C', 100,          // Use color #FD8D3C if 50 <= density < 100
-                            '#FC4E2A', 200,          // Use color #FC4E2A if 100 <= density < 200
-                            '#E31A1C', 500,          // Use color #E31A1C if 200 <= density < 500
-                            '#BD0026', 1000,         // Use color #BD0026 if 500 <= density < 1000
-                            "#800026"                // Use color #800026 if 1000 <= density
+                            'step',
+                            ['get', 'fullyVaxPer10k'],
+                            '#fff7fb',   // stop_output_0
+                            1000,          // stop_input_0
+                            '#ece2f0',   // stop_output_1
+                            2000,          // stop_input_1
+                            '#d0d1e6',   // stop_output_2
+                            3000,          // stop_input_2
+                            '#a6bddb',   // stop_output_3
+                            4000,         // stop_input_3
+                            '#67a9cf',   // stop_output_4
+                            5000,         // stop_input_4
+                            '#3690c0',   // stop_output_5
+                            6000,         // stop_input_5
+                            '#02818a',   // stop_output_6
+                            7000,        // stop_input_6
+                            "#016450"    // stop_output_7
                         ],
-                        'fill-outline-color': '#BBBBBB', // Outline color for the polygons
-                        'fill-opacity': 0.7              // Opacity for the polygons
+                        'fill-outline-color': '#BBBBBB',
+                        'fill-opacity': 0.7,
                     }
                 });
 
                 const layers = [
-                    '0-9', '10-19', '20-49', '50-99',
-                    '100-199', '200-499', '500-999', '1000 and more'
+                    '0-999',
+                    '1000-1999',
+                    '2000-2999',
+                    '3000-3999',
+                    '4000-4999',
+                    '5000-5999',
+                    '6000-6999',
+                    '7000 and more'
                 ];
+                
                 const colors = [
-                    '#FFEDA070', '#FED97670', '#FEB24C70', '#FD8D3C70',
-                    '#FC4E2A70', '#E31A1C70', '#BD002670', '#80002670'
+                    '#fff7fb70',
+                    '#ece2f070',
+                    '#d0d1e670',
+                    '#a6bddb70',
+                    '#67a9cf70',
+                    '#3690c070',
+                    '#02818a70',
+                    '#01645070'
                 ];
-
+            
                 const legend = document.getElementById('legend');
-                legend.innerHTML = "<b>Population Density<br>(people/sq.mi.)</b><br><br>";
+                legend.innerHTML = "<b>Vaccination Population<br>(people/10k)</b><br><br>";
 
                 layers.forEach((layer, i) => {
                     const color = colors[i];
@@ -151,20 +173,23 @@
                     item.appendChild(value);
                     legend.appendChild(item);
                 });
-
-                map.on('mousemove', ({ point }) => {
-                    const state = map.queryRenderedFeatures(point, {
-                        layers: ['stateData-layer']
+                
+                map.on('mousemove', ({point}) => {
+                    const county = map.queryRenderedFeatures(point, {
+                        layers: ['countyData-layer']
                     });
-                    document.getElementById('text-description').innerHTML = state.length ?
-                        `<h3>${state[0].properties.name}</h3><p><strong><em>${state[0].properties.density}</strong> people per square mile</em></p>` :
-                        `<p>Hover over a state!</p>`;
+                    document.getElementById('text-description').innerHTML = county.length ?
+                        `<h3>${county[0].properties.name}</h3><p><strong><em>${county[0].properties.casePer10k}</strong> confirmed cases per 10k </em></p>
+                        <strong><em>${county[0].properties.fullyVaxPer10k}</strong> confirmed vaccinated per 10k </em></p>` :
+                        `<p>Hover over a County</p>`;
                 });
+
             });
         }
-
         geojsonFetch();
-    </script>
+
+    </script>   
+
 </body>
 
 </html>
